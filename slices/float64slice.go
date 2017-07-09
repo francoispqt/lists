@@ -90,7 +90,7 @@ func (c Float64Slice) MapAsyncInterface(cb func(int, float64, chan []interface{}
 			ret[intf[0].(int)] = nil
 		}
 		ct++
-		if ct == len(ret) {
+		if ct == len(c) {
 			close(mapChan)
 		}
 	}

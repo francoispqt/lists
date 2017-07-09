@@ -63,7 +63,7 @@ func (c IntSlice) MapAsync(cb func(int, int, chan []interface{})) IntSlice {
 			ret[intf[0].(int)] = 0
 		}
 		ct++
-		if ct == len(ret) {
+		if ct == len(c) {
 			close(mapChan)
 		}
 	}
@@ -90,7 +90,7 @@ func (c IntSlice) MapAsyncInterface(cb func(int, int, chan []interface{})) Inter
 			ret[intf[0].(int)] = nil
 		}
 		ct++
-		if ct == len(ret) {
+		if ct == len(c) {
 			close(mapChan)
 		}
 	}

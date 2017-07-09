@@ -22,7 +22,7 @@ func (c StringSlice) ForEach(cb func(int, string)) {
 	}
 }
 
-// MapInterface method creates a new slice with the results of calling a provided func on every element in the calling array.
+// Map method creates a new slice with the results of calling a provided func on every element in the calling array.
 // Returns a slice of string (original type).
 // For asynchronicity, see MapAsync.
 func (c StringSlice) Map(cb func(int, string) string) StringSlice {
@@ -63,7 +63,7 @@ func (c StringSlice) MapAsync(cb func(int, string, chan []interface{}), maxConcu
 			ret[intf[0].(int)] = ""
 		}
 		ct++
-		if ct == len(ret) {
+		if ct == len(c) {
 			close(mapChan)
 		}
 	}
@@ -91,7 +91,7 @@ func (c StringSlice) MapAsyncInterface(cb func(int, string, chan []interface{}))
 			ret[intf[0].(int)] = nil
 		}
 		ct++
-		if ct == len(ret) {
+		if ct == len(c) {
 			close(mapChan)
 		}
 	}

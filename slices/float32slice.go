@@ -63,7 +63,7 @@ func (c Float32Slice) MapAsync(cb func(int, float32, chan []interface{})) Float3
 			ret[intf[0].(int)] = 0
 		}
 		ct++
-		if ct == len(ret) {
+		if ct == len(c) {
 			close(mapChan)
 		}
 	}
