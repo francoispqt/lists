@@ -208,12 +208,12 @@ func main() {
 ## Maps
 Maps have 6 different types:
 
-*maps.MapInterfaceInterface
-*maps.MapStringString
-*maps.MapStringInterface
-*maps.MapStringInt
-*maps.MapStringFloat64
-*maps.MapStringFloat32
+* maps.MapInterfaceInterface
+* maps.MapStringString
+* maps.MapStringInterface
+* maps.MapStringInt
+* maps.MapStringFloat64
+* maps.MapStringFloat32
 
 Functions explained below will use MapStringString, specificities for certain types will be mentioned.
 
@@ -440,11 +440,11 @@ someMap.Cast()
 ## Slices
 Slices have 5 different types:
 
-*slices.InterfaceSlice
-*slices.StringSlice
-*slices.Intslice
-*slices.Float32Slice
-*slices.Float34Slice
+* slices.InterfaceSlice
+* slices.StringSlice
+* slices.Intslice
+* slices.Float32Slice
+* slices.Float34Slice
 
 Functions explained below will use StringSlice, specificities for certain types will be mentioned.
 
