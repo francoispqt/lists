@@ -391,20 +391,49 @@ type AsyncAggregator struct {
 Returns an interface.
 For synchronicity, see Reduce.
 
-```go
-
-```
-
 ### Indexes
+The Indexes method returns a slice of a given map's indexes (keys).
+
 ```go
+var someMap MapStringString
+someMap = map[string]string{
+	"hello": "world",
+	"foo":   "bar",
+}
+
+var indexes slices.StringSlice
+indexes = someMap.Indexes()
+
+fmt.Println(indexes) // [hello, foo]
 ```
 
 ### Filter
+Filter method creates a map with all elements that pass the test implemented by the provided function.
+
 ```go
+someMap := maps.MapStringString{
+	"hello": "world",
+	"foo": "bar",
+}
+
+result := someMap.Filter(func(k, v string) bool {
+	return v != "world"
+})
+
+fmt.Println(result) // map[foo: bar]
 ```
 
 ### Cast
+Cast method explicitly casts the map to its original type.
+For example MapStringString.Cast() returns map[string]string.
+
 ```go
+someMap := maps.MapStringString{
+	"hello": "world",
+	"foo": "bar",
+}
+
+someMap.Cast()
 ```
 
 ## Slices
