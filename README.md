@@ -198,28 +198,118 @@ func main() {
 	9. Cast
 
 ## Maps
+Maps have 6 different types:
+	*maps.MapInterfaceInterface
+	*maps.MapStringString
+	*maps.MapStringInterface
+	*maps.MapStringInt
+	*maps.MapStringFloat64
+	*maps.MapStringFloat32
+
+Functions explained below will use MapStringString, specificities for certain types will be mentioned.
+
 ### Contains
+Contains method determines whether a slice includes a certain element, returning true or false as appropriate.
+```go
+var someSlice MapStringString
+someSlice = map[string]string{
+	"hello": "world",
+	"foo":   "bar",
+}
+
+test.Contains("world") // true
+test.Contains("coffee") // false
+```
+
 ### ForEach
+ForEach method executes a provided func once for each slice element.
+```go
+var someSlice MapStringString
+someSlice = map[string]string{
+	"hello": "world",
+	"foo":   "bar",
+}
+filtered.ForEach(func(k, v string) {
+	fmt.Println(k, v)
+})
+```
+
 ### Map
+```go
+```
+
 ### MapAsyncInterface
+```go
+```
+
 ### Reduce
+```go
+```
+
 ### ReduceAsync
+```go
+```
+
 ### Indexes
+```go
+```
+
 ### Filter
+```go
+```
+
 ### Cast
+```go
+```
 
 ## Slices
+Slices have 5 different types:
+	*slices.InterfaceSlice
+	*slices.StringSlice
+	*slices.Intslice
+	*slices.Float32Slice
+	*slices.Float34Slice
+
+Functions explained below will use StringSlice, specificities for certain types will be mentioned.
+
 ### Contains
+```go
+```
+
 ### ForEach
+```go
+```
+
 ### Map
+```go
+```
+
 ### MapAsyncInterface
+```go
+```
+
 ### Reduce
+```go
+```
+
 ### ReduceAsync
+```go
+```
+
 ### Indexes
+```go
+```
+
 ### Filter
+```go
+```
+
 ### Cast
+```go
+```
 
 ## Tests
+
 
 The package is thoroughly tested, although it could take a little cleaning and commenting.
 Coverage is at 94% for slices and 97% for maps.
