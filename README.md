@@ -179,23 +179,27 @@ func main() {
 	1. Contains
 	2. ForEach
 	3. Map
-	4. MapAsyncInterface
-	5. Reduce
-	6. ReduceAsync
-	7. Indexes
-	8. Filter
-	9. Cast
+	4. MapInterface
+	5. MapAsync
+	6. MapAsyncInterface
+	7. Reduce
+	8. ReduceAsync
+	9. Indexes
+	10. Filter
+	11. Cast
 
 2. **[Slices](#slices-1)**
 	1. Contains
 	2. ForEach
 	3. Map
-	4. MapAsyncInterface
-	5. Reduce
-	6. ReduceAsync
-	7. Indexes
-	8. Filter
-	9. Cast
+	4. MapInterface
+	5. MapAsync
+	6. MapAsyncInterface
+	7. Reduce
+	8. ReduceAsync
+	9. Indexes
+	10. Filter
+	11. Cast
 
 ## Maps
 Maps have 6 different types:
@@ -229,13 +233,94 @@ someSlice = map[string]string{
 	"hello": "world",
 	"foo":   "bar",
 }
-filtered.ForEach(func(k, v string) {
+someSlice.ForEach(func(k, v string) {
 	fmt.Println(k, v)
 })
 ```
 
+Map method creates a new map with the results of calling a provided func on every element in the calling map.
+Returns a map of original type.
+For asynchronicity, see MapAsync.
+For returning a map with interfaces elements, see MapInterface.
 ### Map
 ```go
+var someSlice MapStringString
+someSlice = map[string]string{
+	"hello": "world",
+	"foo":   "bar",
+}
+
+result = someSlice.Map(func(k, v string) string {
+	v += " !"
+	return v
+})
+
+fmt.Println(result) // map[hello: world !, foo: bar !]
+```
+
+MapInterface method creates a new map with the results of calling a provided func on every element in the calling array.
+Returns a map of interfaces indexed by strings for all MapString.
+This method does not exist for MapStringInterface and MapInterfaceInterface.
+For asynchronicity, see MapAsyncInterface.
+### MapInterface
+```go
+var someSlice MapStringString
+someSlice = map[string]string{
+	"hello": "world",
+	"foo":   "bar",
+}
+
+result := test2.MapInterface(func(k, v string) interface{} {
+	return 1 // we return a different type just to show usage
+})
+
+fmt.Println(result) // map[hello: 1, foo: 1]
+```
+
+### MapAsync
+MapAsync method creates a new map with the results of calling a provided go routine on every element in the calling array.
+Runs asynchronously and gives a chan [2]string to return results for all MapStringString and [2]interface{} for all other types.
+To keep initial order, the first elemt of the [2]interface{} (or [2]string) written to the chan must be the key. The second element muse be a the destionation type.
+Returns the original type (example: MapStringString.Map() returns MapStringString).
+If you want to map to a map of different types, see MapAsyncInterface.
+
+**Concurrency**
+A second optional argument can be passed to MapAsync, it must be an int. This argument sets a max concurrency to the Mapping, meaning when the number of go routine call will equal to the max concurrency, it will wait for values to be consumed from the "done" chan before calling the next go routines.
+
+```go
+var someSlice maps.MapStringString
+someSlice = maps.MapStringString{
+	"someURI": "http://someuri.com"
+	...
+}
+// let say some slice has 500 elements
+// we want to get the result of all requests
+// to do it as quick as possible, let's do it in parallel
+// but we must make the number of file handlers open are not too high or it will panic
+// so we use maxConcurrency and we set it to 100
+
+result := someSlice.MapAsync(func(k string, v string, done chan [2]string) {
+		// make get request
+		rs, err := http.Get(v)
+		log.Printf("calling :", v)
+
+		if err != nil {
+			panic(err)
+		}
+		defer rs.Body.Close()
+
+		bodyBytes, err := ioutil.ReadAll(rs.Body)
+		if err != nil {
+			panic(err)
+		}
+
+		bodyString := string(bodyBytes)
+		log.Printf("got response :", bodyString)
+
+		// write response to channel
+		// index must be first element
+		done <- [2]string{k, bodyString}
+}, 100)
 ```
 
 ### MapAsyncInterface
