@@ -10,6 +10,6 @@ script:
   - ./test.sh
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash) -t uuid-repo-token
+  - bash <(curl -s https://codecov.io/bash) -t 293510d8-edd3-4e38-b8e1-74d2e3c6e2d1
 
 go_import_path: github.com/francoispqt/lists
