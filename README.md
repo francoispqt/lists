@@ -375,8 +375,18 @@ result := someMap.Reduce(
 
 fmt.Println(result) // 8
 ```
-
 ### ReduceAsync
+Reduce method applies a go routinge against an accumulator and each element in the slice (from left to right) to reduce it to a single value of any type.
+The accumulator is a *lists.AsyncAggregator, it is a pointer to a stuct containing two chan :
+```go
+type AsyncAggregator struct {
+	Agg  chan interface{}
+	Done chan interface{}
+}
+```
+Returns an interface.
+For synchronicity, see Reduce.
+
 ```go
 
 ```
