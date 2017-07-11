@@ -19,8 +19,6 @@ https://godoc.org/github.com/francoispqt/lists/slices
 
 ## Examples
 ### Maps
-GoDoc: https://godoc.org/github.com/francoispqt/lists/maps
-
 ```go
 import "github.com/francoispqt/lists/maps"
 ```
@@ -112,8 +110,6 @@ func main() {
 ```
 
 ### Slices
-GoDoc: https://godoc.org/github.com/francoispqt/lists/slices
-
 ```go
 import "github.com/francoispqt/lists/slices"
 ```
@@ -219,6 +215,8 @@ func main() {
 	11. Cast
 
 ## Maps
+GoDoc: https://godoc.org/github.com/francoispqt/lists/maps
+
 Maps have 6 different types:
 
 * maps.MapInterfaceInterface
@@ -487,6 +485,8 @@ someMap.Cast()
 ```
 
 ## Slices
+GoDoc: https://godoc.org/github.com/francoispqt/lists/slices
+
 Slices have 5 different types:
 
 * slices.InterfaceSlice
