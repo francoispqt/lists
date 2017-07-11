@@ -54,12 +54,12 @@ func TestInterfaceSlice(t *testing.T) {
 	// mapAsync might not return the result in the same order
 	fmt.Println(reduce)
 	var ret InterfaceSlice
-	ret = reduce.MapAsync(func(k int, v interface{}, done chan []interface{}) {
+	ret = reduce.MapAsync(func(k int, v interface{}, done chan [2]interface{}) {
 		if k == 0 {
 			time.Sleep(time.Second * 1)
 		}
 		fmt.Println("writing to done", k, v)
-		done <- []interface{}{k, v}
+		done <- [2]interface{}{k, v}
 	})
 
 	assert.Len(t, ret, 2, "test your be of len 2")

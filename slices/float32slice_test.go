@@ -61,23 +61,23 @@ func TestFloat32Slice(t *testing.T) {
 	// test mapAsync
 	// mapAsync might not return the result in the same order
 	var ret Float32Slice
-	ret = reduce.MapAsync(func(k int, v float32, done chan []interface{}) {
+	ret = reduce.MapAsync(func(k int, v float32, done chan [2]interface{}) {
 		if k == 0 {
 			time.Sleep(time.Second * 1)
 		}
-		done <- []interface{}{k, v + 1.0}
+		done <- [2]interface{}{k, v + 1.0}
 	})
 
 	assert.Len(t, ret, 2, "test your be of len 1")
 	assert.Equal(t, float32(5.0), ret[1], "Index 1 should be 5.0")
 
 	var retIntf []interface{}
-	retIntf = reduce.MapAsyncInterface(func(k int, v float32, done chan []interface{}) {
+	retIntf = reduce.MapAsyncInterface(func(k int, v float32, done chan [2]interface{}) {
 		fmt.Println("async map", k, v)
 		if k == 0 {
 			time.Sleep(time.Second * 1)
 		}
-		done <- []interface{}{k, Float32Slice{v}}
+		done <- [2]interface{}{k, Float32Slice{v}}
 	})
 
 	assert.Len(t, retIntf, len(reduce), "len of retIntf should be same as reduce")

@@ -45,26 +45,77 @@ func (c Float64Slice) MapInterface(cb func(int, float64) interface{}) InterfaceS
 }
 
 // MapAsync method creates a new slice with the results of calling a provided go routine on every element in the calling array.
-// Runs asynchronously and needs gives a chan []interface{} to return results.
+// Runs asynchronously and needs gives a chan [2]interface{} to return results.
 // To keep initial order, the first elemt of th []interface{} written to the chan must be the key. The second element muse be a string.
 // Returns a StringSlice (original type).
 // If you want to map to a slice of different type, see MapAsyncInterface.
-func (c Float64Slice) MapAsync(cb func(int, float64, chan []interface{})) Float64Slice {
-	mapChan := make(chan []interface{}, len(c))
-	for k, v := range c {
-		go cb(k, v, mapChan)
+func (c Float64Slice) MapAsync(cb func(int, float64, chan [2]interface{}), maxConcurrency ...int) Float64Slice {
+	var maxConc = lists.DEFAULT_CONC
+	if len(maxConcurrency) == 1 {
+		maxConc = maxConcurrency[0]
 	}
+
+	var mapChan = make(chan [2]interface{}, len(c))
+	var doing chan struct{}
 	var ret = make([]float64, len(c))
-	ct := 0
-	for intf := range mapChan {
-		if len(intf) > 1 {
-			ret[intf[0].(int)] = intf[1].(float64)
+	var i = 0
+	var received = 0
+
+	if maxConc > 0 {
+		doing = make(chan struct{}, maxConc)
+	} else {
+		doing = make(chan struct{})
+	}
+
+	for {
+
+		// if maxConc == 0 go ahead or if maxConc is higher than 0 length of chan doing is lower than maxConc && counter is lower than lenght of slice continue
+		// else start reading from the chan to decrease concurrency
+		if maxConc == 0 || (len(doing) < maxConc && i < len(c)) {
+			v := c[i]
+			go cb(i, v, mapChan)
+			i++
+			if maxConc > 0 {
+				doing <- struct{}{}
+			}
+			if maxConc == 0 && i == len(c) {
+				break
+			}
 		} else {
-			ret[intf[0].(int)] = 0
+
+			// start reading my chan
+			intf := <-mapChan
+			received++
+
+			if len(intf) > 1 {
+				ret[intf[0].(int)] = intf[1].(float64)
+			} else {
+				ret[intf[0].(int)] = 0
+			}
+
+			// reading doing to continue the loop
+			<-doing
+
+			if received == len(c)-1 {
+				return ret
+			}
 		}
-		ct++
-		if ct == len(ret) {
-			close(mapChan)
+	}
+
+	// is max concurenccy is 0, means no limit
+	// so we only start reading the result chan here
+	if maxConc == 0 {
+		ct := 0
+		for intf := range mapChan {
+			if len(intf) > 1 {
+				ret[intf[0].(int)] = intf[1].(float64)
+			} else {
+				ret[intf[0].(int)] = 0
+			}
+			ct++
+			if ct >= len(c) {
+				break
+			}
 		}
 	}
 
@@ -72,26 +123,78 @@ func (c Float64Slice) MapAsync(cb func(int, float64, chan []interface{})) Float6
 }
 
 // MapAsyncInterface method creates a new slice with the results of calling a provided go routine on every element in the calling array.
-// Runs asynchronously and needs gives a chan []interface{} to return results.
+// Runs asynchronously and needs gives a chan [2]interface{} to return results.
 // To keep initial order, the first elemt of th []interface{} written to the chan must be the key. The second element muse be a string.
 // Returns InterfaceSlice.
 // If you know the result will be of original type, user MapAsync.
-func (c Float64Slice) MapAsyncInterface(cb func(int, float64, chan []interface{})) InterfaceSlice {
-	mapChan := make(chan []interface{}, len(c))
-	for k, v := range c {
-		go cb(k, v, mapChan)
+func (c Float64Slice) MapAsyncInterface(cb func(int, float64, chan [2]interface{}), maxConcurrency ...int) InterfaceSlice {
+	var maxConc = lists.DEFAULT_CONC
+	if len(maxConcurrency) == 1 {
+		maxConc = maxConcurrency[0]
 	}
+
+	var mapChan = make(chan [2]interface{}, len(c))
+	var doing chan struct{}
 	var ret = make([]interface{}, len(c))
-	ct := 0
-	for intf := range mapChan {
-		if len(intf) > 1 {
-			ret[intf[0].(int)] = intf[1]
+	var i = 0
+	var received = 0
+
+	if maxConc > 0 {
+		doing = make(chan struct{}, maxConc)
+	} else {
+		doing = make(chan struct{})
+	}
+
+	for {
+
+		// if maxConc == 0 go ahead or if maxConc is higher than 0 length of chan doing is lower than maxConc && counter is lower than lenght of slice continue
+		// else start reading from the chan to decrease concurrency
+		if maxConc == 0 || (len(doing) < maxConc && i < len(c)) {
+			v := c[i]
+			go cb(i, v, mapChan)
+			i++
+			if maxConc > 0 {
+				doing <- struct{}{}
+			}
+			if maxConc == 0 && i == len(c) {
+				break
+			}
 		} else {
-			ret[intf[0].(int)] = nil
+
+			// start reading my chan
+			intf := <-mapChan
+			received++
+
+			if len(intf) > 1 {
+				ret[intf[0].(int)] = intf[1]
+			} else {
+				ret[intf[0].(int)] = nil
+			}
+
+			// reading doing to continue the loop
+			<-doing
+
+			if received == len(c)-1 {
+				return ret
+			}
+			continue
 		}
-		ct++
-		if ct == len(c) {
-			close(mapChan)
+	}
+
+	// is max concurenccy is 0, means no limit
+	// so we only start reading the result chan here
+	if maxConc == 0 {
+		ct := 0
+		for intf := range mapChan {
+			if len(intf) > 1 {
+				ret[intf[0].(int)] = intf[1]
+			} else {
+				ret[intf[0].(int)] = nil
+			}
+			ct++
+			if ct >= len(c) {
+				break
+			}
 		}
 	}
 

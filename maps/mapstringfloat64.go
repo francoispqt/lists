@@ -6,10 +6,10 @@ import (
 	"github.com/francoispqt/lists"
 )
 
-type MapStringInt map[string]int
+type MapStringFloat64 map[string]float64
 
 // Contains method determines whether a slice includes a certain element, returning true or false as appropriate.
-func (c MapStringInt) Contains(s int) bool {
+func (c MapStringFloat64) Contains(s float64) bool {
 	for _, v := range c {
 		if v == s {
 			return true
@@ -19,7 +19,7 @@ func (c MapStringInt) Contains(s int) bool {
 }
 
 // ForEach method executes a provided func once for each slice element.
-func (c MapStringInt) ForEach(cb func(string, int)) {
+func (c MapStringFloat64) ForEach(cb func(string, float64)) {
 	for k, v := range c {
 		cb(k, v)
 	}
@@ -28,8 +28,8 @@ func (c MapStringInt) ForEach(cb func(string, int)) {
 // MapInterface method creates a new slice with the results of calling a provided func on every element in the calling array.
 // Returns a slice of string (original type).
 // For asynchronicity, see MapAsync.
-func (c MapStringInt) Map(cb func(string, int) int) MapStringInt {
-	var ret = make(map[string]int, len(c))
+func (c MapStringFloat64) Map(cb func(string, float64) float64) MapStringFloat64 {
+	var ret = make(map[string]float64, len(c))
 	for k, v := range c {
 		ret[k] = cb(k, v)
 	}
@@ -39,7 +39,7 @@ func (c MapStringInt) Map(cb func(string, int) int) MapStringInt {
 // MapInterface method creates a new slice with the results of calling a provided func on every element in the calling array.
 // Returns a slice of interfaces.
 // For asynchronicity, see MapAsyncInterface.
-func (c MapStringInt) MapInterface(cb func(string, int) interface{}) MapStringInterface {
+func (c MapStringFloat64) MapInterface(cb func(string, float64) interface{}) MapStringInterface {
 	var ret = make(map[string]interface{}, len(c))
 	for k, v := range c {
 		ret[k] = cb(k, v)
@@ -52,17 +52,17 @@ func (c MapStringInt) MapInterface(cb func(string, int) interface{}) MapStringIn
 // To keep initial order, the first elemt of th []interface{} written to the chan must be the key. The second element muse be a string.
 // Returns a StringSlice (original type).
 // If you want to map to a slice of different type, see MapAsyncInterface.
-func (c MapStringInt) MapAsync(cb func(string, int, chan [2]interface{}), maxConcurrency ...int) MapStringInt {
+func (c MapStringFloat64) MapAsync(cb func(string, float64, chan [2]interface{}), maxConcurrency ...int) MapStringFloat64 {
 	mapChan := make(chan [2]interface{}, len(c))
 	for k, v := range c {
 		go cb(k, v, mapChan)
 	}
-	var ret = make(map[string]int, len(c))
+	var ret = make(map[string]float64, len(c))
 	ct := 0
 	for intf := range mapChan {
 		fmt.Println(intf)
 		if len(intf) > 1 {
-			ret[intf[0].(string)] = intf[1].(int)
+			ret[intf[0].(string)] = intf[1].(float64)
 		} else {
 			ret[intf[0].(string)] = 0
 		}
@@ -80,7 +80,7 @@ func (c MapStringInt) MapAsync(cb func(string, int, chan [2]interface{}), maxCon
 // Returns InterfaceSlice.
 // If you know the result will be of original type, user MapAsync.
 // @Todo implement max concurrency (in case a lot of requests for example)
-func (c MapStringInt) MapAsyncInterface(cb func(string, int, chan [2]interface{})) MapStringInterface {
+func (c MapStringFloat64) MapAsyncInterface(cb func(string, float64, chan [2]interface{})) MapStringInterface {
 	mapChan := make(chan [2]interface{}, len(c))
 	for k, v := range c {
 		go cb(k, v, mapChan)
@@ -101,7 +101,7 @@ func (c MapStringInt) MapAsyncInterface(cb func(string, int, chan [2]interface{}
 // If no accumulator is passed as second argument, default accumulator will be nil
 // Returns an interface.
 // For asynchronicity, see ReduceAsync.
-func (c MapStringInt) Reduce(cb func(string, int, interface{}) interface{}, defAgg ...interface{}) interface{} {
+func (c MapStringFloat64) Reduce(cb func(string, float64, interface{}) interface{}, defAgg ...interface{}) interface{} {
 	var agg interface{}
 	if len(defAgg) == 0 {
 		agg = nil
@@ -117,7 +117,7 @@ func (c MapStringInt) Reduce(cb func(string, int, interface{}) interface{}, defA
 // Reduce method applies a go routinge against an accumulator and each element in the slice (from left to right) to reduce it to a single value of any type.
 // Returns an interface.
 // For synchronicity, see Reduce.
-func (c MapStringInt) ReduceAsync(cb func(string, int, *lists.AsyncAggregator), defAgg ...interface{}) interface{} {
+func (c MapStringFloat64) ReduceAsync(cb func(string, float64, *lists.AsyncAggregator), defAgg ...interface{}) interface{} {
 	agg := &lists.AsyncAggregator{
 		Done: make(chan interface{}, len(c)),
 		Agg:  make(chan interface{}, len(c)),
@@ -135,7 +135,7 @@ func (c MapStringInt) ReduceAsync(cb func(string, int, *lists.AsyncAggregator), 
 }
 
 // IsLast checks if the index passed is the last of the slice
-func (c MapStringInt) IsLast(k string) bool {
+func (c MapStringFloat64) IsLast(k string) bool {
 	cL := len(c)
 	ct := 0
 	for kk, _ := range c {
@@ -148,7 +148,7 @@ func (c MapStringInt) IsLast(k string) bool {
 }
 
 // Indexes returns a slice of ints with including the indexes of the StringSlice
-func (c MapStringInt) Indexes() []string {
+func (c MapStringFloat64) Indexes() []string {
 	var indexes = []string{}
 	for k, _ := range c {
 		indexes = append(indexes, k)
@@ -157,8 +157,8 @@ func (c MapStringInt) Indexes() []string {
 }
 
 // Filter method creates a new slice with all elements that pass the test implemented by the provided function.
-func (c MapStringInt) Filter(cb func(k string, v int) bool) MapStringInt {
-	var ret = make(map[string]int, 0)
+func (c MapStringFloat64) Filter(cb func(k string, v float64) bool) MapStringFloat64 {
+	var ret = make(map[string]float64, 0)
 	for k, v := range c {
 		if cb(k, v) {
 			ret[k] = v
@@ -168,8 +168,8 @@ func (c MapStringInt) Filter(cb func(k string, v int) bool) MapStringInt {
 }
 
 // Cast explicitly cast the StringSlice to a map[string]string type
-func (c MapStringInt) Cast() map[string]int {
-	var dest map[string]int
+func (c MapStringFloat64) Cast() map[string]float64 {
+	var dest map[string]float64
 	dest = c
 	return dest
 }

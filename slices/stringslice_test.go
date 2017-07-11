@@ -44,10 +44,10 @@ func TestHeavyLifting(t *testing.T) {
 	fmt.Println("Heavy lifting async reduce success")
 
 	fmt.Println("Start heavy lifting async map")
-	resultMapAsync := StringSlice(test).MapAsync(func(k int, v string, done chan []interface{}) {
+	resultMapAsync := StringSlice(test).MapAsync(func(k int, v string, done chan [2]interface{}) {
 		randNum := random(0, 200)
 		time.Sleep(time.Duration(randNum) * time.Millisecond)
-		done <- []interface{}{k, v}
+		done <- [2]interface{}{k, v}
 	}).Cast()
 
 	assert.Len(t, test, len(resultMapAsync), fmt.Sprintf("Result len should be %d", len(test)))
@@ -116,22 +116,22 @@ func TestStringSlice(t *testing.T) {
 	// test mapAsync
 	// mapAsync might not return the result in the same order
 	var ret StringSlice
-	ret = reduce.MapAsync(func(k int, v string, done chan []interface{}) {
+	ret = reduce.MapAsync(func(k int, v string, done chan [2]interface{}) {
 		if k == 0 {
 			time.Sleep(time.Second * 1)
 		}
-		done <- []interface{}{k, v}
+		done <- [2]interface{}{k, v}
 	})
 
 	assert.Len(t, ret, len(reduce), "len of retIntf should be same as reduce")
 	assert.IsType(t, "", ret[0], "Should of type stringSlice")
 
 	var retIntf InterfaceSlice
-	retIntf = reduce.MapAsyncInterface(func(k int, v string, done chan []interface{}) {
+	retIntf = reduce.MapAsyncInterface(func(k int, v string, done chan [2]interface{}) {
 		if k == 0 {
 			time.Sleep(time.Second * 1)
 		}
-		done <- []interface{}{k, StringSlice{v}}
+		done <- [2]interface{}{k, StringSlice{v}}
 	})
 
 	assert.Len(t, retIntf, len(reduce), "len of retIntf should be same as reduce")

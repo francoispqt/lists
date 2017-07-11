@@ -60,23 +60,23 @@ func TestIntSlice(t *testing.T) {
 	// test mapAsync
 	// mapAsync might not return the result in the same order
 	var ret IntSlice
-	ret = reduce.MapAsync(func(k int, v int, done chan []interface{}) {
+	ret = reduce.MapAsync(func(k int, v int, done chan [2]interface{}) {
 		if k == 0 {
 			time.Sleep(time.Second * 1)
 		}
-		done <- []interface{}{k, v}
+		done <- [2]interface{}{k, v}
 	})
 
 	assert.Len(t, ret, 2, "test your be of len 1")
 	assert.Equal(t, 3, ret[1], "index 1 should be '3'")
 
 	var retIntf InterfaceSlice
-	retIntf = reduce.MapAsyncInterface(func(k int, v int, done chan []interface{}) {
+	retIntf = reduce.MapAsyncInterface(func(k int, v int, done chan [2]interface{}) {
 		fmt.Println("async map", k, v)
 		if k == 0 {
 			time.Sleep(time.Second * 1)
 		}
-		done <- []interface{}{k, IntSlice{v}}
+		done <- [2]interface{}{k, IntSlice{v}}
 	})
 
 	assert.Len(t, retIntf, len(reduce), "len of retIntf should be same as reduce")
