@@ -2,6 +2,7 @@ package maps
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 
@@ -9,6 +10,64 @@ import (
 	"github.com/francoispqt/lists/slices"
 	"github.com/stretchr/testify/assert"
 )
+
+func makeMapStringInt() MapStringInt {
+	myMap := make(map[string]int, 500)
+	for i := 0; i <= 499; i++ {
+		iAk := strconv.Itoa(i + 1)
+		myMap[iAk] = i + 1
+	}
+	return myMap
+}
+
+func TestHeavyLiftingMapStringInt(t *testing.T) {
+
+	myMap := makeMapStringInt()
+	// max concurrency is set to 20
+	// test is relying on external api, we don't need to stress it too much
+	result := myMap.MapAsync(func(k string, v int, done chan [2]interface{}) {
+		// do some async
+		go func() {
+			// write response to channel
+			// index must be first element
+			done <- [2]interface{}{k, v}
+		}()
+	}, 100)
+	assert.Len(t, result, 500, "len should be 500")
+	for k, v := range result {
+		assert.True(t, (k != "" && v != 0), "None of the walue should be zero val")
+	}
+
+	resultIntf := myMap.MapAsyncInterface(func(k string, v int, done chan [2]interface{}) {
+		// do some async
+		go func() {
+			// write response to channel
+			// index must be first element
+			done <- [2]interface{}{k, float32(v)}
+		}()
+	}, 100)
+	assert.Len(t, resultIntf, 500, "len should be 500")
+	assert.IsType(t, float32(0), resultIntf["1"], "type of values in resultIntf should be float32")
+
+	filtered := result.Filter(func(k string, v int) bool {
+		kInt, err := strconv.Atoi(k)
+		if err != nil {
+			panic(err)
+		}
+		return kInt <= 100
+	})
+
+	assert.Len(t, filtered, 100, "len after filter should be 100")
+
+	ctForEach := 0
+	filtered.ForEach(func(k string, v int) {
+		ctForEach++
+	})
+
+	assert.Equal(t, ctForEach, 100, "forEach counter should be 100")
+
+	fmt.Println("Done testing heavy lifting")
+}
 
 func TestMapStringInt(t *testing.T) {
 

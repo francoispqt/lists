@@ -2,6 +2,10 @@ package maps
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -10,6 +14,89 @@ import (
 	"github.com/francoispqt/lists/slices"
 	"github.com/stretchr/testify/assert"
 )
+
+func makeMap() MapStringString {
+	myMap := make(map[string]string, 500)
+	for i := 0; i <= 499; i++ {
+		iAk := strconv.Itoa(i + 1)
+		iAv := strconv.Itoa(i)
+		myMap[iAk] = iAv
+	}
+	return myMap
+}
+
+func TestHeavyLifting(t *testing.T) {
+
+	myMap := makeMap()
+	// max concurrency is set to 20
+	// test is relying on external api, we don't need to stress it too much
+	result := myMap.MapAsync(func(k, v string, done chan [2]string) {
+		// do some async
+		go func() {
+			// build uri
+			uri := fmt.Sprintf("https://jsonplaceholder.typicode.com/comments/%s", k)
+			log.Printf("calling :", "GET/"+uri)
+
+			// make get request
+			rs, err := http.Get(uri)
+
+			if err != nil {
+				panic(err) // More idiomatic way would be to print the error and die unless it's a serious error
+			}
+			defer rs.Body.Close()
+
+			bodyBytes, err := ioutil.ReadAll(rs.Body)
+			if err != nil {
+				panic(err)
+			}
+
+			bodyString := string(bodyBytes)
+			log.Printf("got response :", uri)
+			// write response to channel
+			// index must be first element
+			done <- [2]string{k, bodyString}
+		}()
+	}, 20)
+	assert.Len(t, result, 500, "len should be 500")
+	for k, v := range result {
+		fmt.Println(k, v)
+		assert.True(t, (k != "" && v != ""), "None of the walue should be zero val")
+	}
+
+	resultIntf := myMap.MapAsyncInterface(func(k string, v string, done chan [2]interface{}) {
+		// do some async
+		go func() {
+			// write response to channel
+			// index must be first element
+			vInt, err := strconv.Atoi(v)
+			if err != nil {
+				panic(err)
+			}
+			done <- [2]interface{}{k, vInt}
+		}()
+	}, 100)
+	assert.Len(t, resultIntf, 500, "len should be 500")
+	assert.IsType(t, 0, resultIntf["1"], "type of values in resultIntf should be int")
+
+	filtered := result.Filter(func(k, v string) bool {
+		kInt, err := strconv.Atoi(k)
+		if err != nil {
+			panic(err)
+		}
+		return kInt <= 100
+	})
+
+	assert.Len(t, filtered, 100, "len after filter should be 100")
+
+	ctForEach := 0
+	filtered.ForEach(func(k, v string) {
+		ctForEach++
+	})
+
+	assert.Equal(t, ctForEach, 100, "forEach counter should be 100")
+
+	fmt.Println("Done testing heavy lifting")
+}
 
 func TestMapStringString(t *testing.T) {
 

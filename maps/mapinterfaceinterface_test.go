@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func makeMapStringInterface() MapStringInterface {
-	myMap := make(map[string]interface{}, 500)
+func makeMapInterfaceInterface() MapInterfaceInterface {
+	myMap := make(map[interface{}]interface{}, 500)
 	for i := 0; i <= 499; i++ {
 		iAk := strconv.Itoa(i + 1)
 		iAv := strconv.Itoa(i)
@@ -22,12 +22,12 @@ func makeMapStringInterface() MapStringInterface {
 	return myMap
 }
 
-func TestHeavyLiftingMapStringInterface(t *testing.T) {
+func TestHeavyLiftingMapInterfaceInterface(t *testing.T) {
 
-	myMap := makeMapStringInterface()
+	myMap := makeMapInterfaceInterface()
 	// max concurrency is set to 20
 	// test is relying on external api, we don't need to stress it too much
-	result := myMap.MapAsync(func(k string, v interface{}, done chan [2]interface{}) {
+	result := myMap.MapAsync(func(k, v interface{}, done chan [2]interface{}) {
 		// do some async
 		go func() {
 			// write response to channel
@@ -40,8 +40,8 @@ func TestHeavyLiftingMapStringInterface(t *testing.T) {
 		assert.True(t, (k != "" && v != ""), "None of the walue should be zero val")
 	}
 
-	filtered := result.Filter(func(k string, v interface{}) bool {
-		kInt, err := strconv.Atoi(k)
+	filtered := result.Filter(func(k interface{}, v interface{}) bool {
+		kInt, err := strconv.Atoi(k.(string))
 		if err != nil {
 			panic(err)
 		}
@@ -51,7 +51,7 @@ func TestHeavyLiftingMapStringInterface(t *testing.T) {
 	assert.Len(t, filtered, 100, "len after filter should be 100")
 
 	ctForEach := 0
-	filtered.ForEach(func(k string, v interface{}) {
+	filtered.ForEach(func(k interface{}, v interface{}) {
 		ctForEach++
 	})
 
@@ -60,14 +60,14 @@ func TestHeavyLiftingMapStringInterface(t *testing.T) {
 	fmt.Println("Done testing heavy lifting")
 }
 
-func TestMapStringInterface(t *testing.T) {
-	var test MapStringInterface
-	test = map[string]interface{}{
+func TestMapInterfaceInterface(t *testing.T) {
+	var test MapInterfaceInterface
+	test = map[interface{}]interface{}{
 		"hello": "world",
 		"foo":   "bar",
 	}
 
-	var indexes slices.StringSlice
+	var indexes slices.InterfaceSlice
 	indexes = test.Indexes()
 	assert.True(t, indexes.Contains("hello"), "indexes should be equal")
 	assert.True(t, indexes.Contains("foo"), "indexes should be equal")
@@ -76,8 +76,8 @@ func TestMapStringInterface(t *testing.T) {
 	assert.False(t, test.Contains("coffee"), "should contain world")
 
 	// test contains with slice
-	var testSlice MapStringInterface
-	testSlice = map[string]interface{}{
+	var testSlice MapInterfaceInterface
+	testSlice = map[interface{}]interface{}{
 		"hello": []string{"world"},
 		"foo":   []string{"bar"},
 		"bar":   [2]string{"bar", "hello"},
@@ -88,8 +88,8 @@ func TestMapStringInterface(t *testing.T) {
 	assert.True(t, testSlice.Contains(TesStruct{Foo: "bar"}), "should contain TesStruct{Foo: \"bar\"}")
 	assert.False(t, testSlice.Contains([]string{"hello"}), "should not contain []string{\"hello\"}")
 
-	var test2 MapStringInterface
-	test2 = test.Map(func(k string, v interface{}) interface{} {
+	var test2 MapInterfaceInterface
+	test2 = test.Map(func(k interface{}, v interface{}) interface{} {
 		vStr := v.(string)
 		vStr += " world"
 		return vStr
@@ -100,12 +100,12 @@ func TestMapStringInterface(t *testing.T) {
 
 	var reduce map[string]string
 	reduce = test2.Reduce(
-		func(k string, v interface{}, agg interface{}) interface{} {
+		func(k interface{}, v interface{}, agg interface{}) interface{} {
 			result := agg.(map[string]string)
-			if k == "hello" {
-				result[k] = v.(string)
+			if k.(string) == "hello" {
+				result[k.(string)] = v.(string)
 				vv := v.(string) + " !"
-				result[k+"world"] = vv
+				result[k.(string)+"world"] = vv
 			}
 			return result
 		},
@@ -115,7 +115,7 @@ func TestMapStringInterface(t *testing.T) {
 	assert.Equal(t, "world world", reduce["hello"], "should be the same")
 	assert.Equal(t, "world world !", reduce["helloworld"], "should be the same")
 
-	mapAsync := test2.MapAsync(func(k string, v interface{}, done chan [2]interface{}) {
+	mapAsync := test2.MapAsync(func(k interface{}, v interface{}, done chan [2]interface{}) {
 		if k == "hello" {
 			time.Sleep(time.Second * 1)
 			done <- [2]interface{}{k, "foobar"}
@@ -128,18 +128,18 @@ func TestMapStringInterface(t *testing.T) {
 	assert.Equal(t, mapAsync["hello"], "foobar", "should be the same")
 
 	fmt.Println(test2)
-	redAsyncIntf := test2.ReduceAsync(func(k string, v interface{}, agg *lists.AsyncAggregator) {
+	redAsyncIntf := test2.ReduceAsync(func(k interface{}, v interface{}, agg *lists.AsyncAggregator) {
 		if strings.Contains(v.(string), "world world") {
 			time.Sleep(time.Second * 1)
 			<-agg.Agg
-			agg.Done <- MapStringInterface{"foo": "bar"}
+			agg.Done <- MapInterfaceInterface{"foo": "bar"}
 			return
 		}
 		agg.Done <- <-agg.Agg
-	}).(MapStringInterface)
+	}).(MapInterfaceInterface)
 
 	fmt.Println(redAsyncIntf, "redAsyncIntf")
 
-	assert.IsType(t, MapStringInterface{}, redAsyncIntf, "should be the same")
-	assert.IsType(t, map[string]interface{}{"": ""}, test2.Cast(), "should be the same")
+	assert.IsType(t, MapInterfaceInterface{}, redAsyncIntf, "should be the same")
+	assert.IsType(t, map[interface{}]interface{}{"": ""}, test2.Cast(), "should be the same")
 }

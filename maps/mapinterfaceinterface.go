@@ -6,11 +6,11 @@ import (
 	"github.com/francoispqt/lists"
 )
 
-// InterfaceSlice is a custom type for a slice of interface{}
-type MapStringInterface map[string]interface{}
+// MapInterfaceInterface is a custom type for a slice of map[interface{}]interface{}
+type MapInterfaceInterface map[interface{}]interface{}
 
 // Contains method determines whether a slice includes a certain element, returning true or false as appropriate.
-func (c MapStringInterface) Contains(s interface{}) bool {
+func (c MapInterfaceInterface) Contains(s interface{}) bool {
 	contains := false
 	for _, v := range c {
 		val := reflect.ValueOf(v)
@@ -42,7 +42,7 @@ func (c MapStringInterface) Contains(s interface{}) bool {
 }
 
 // ForEach method executes a provided func once for each slice element.
-func (c MapStringInterface) ForEach(cb func(string, interface{})) {
+func (c MapInterfaceInterface) ForEach(cb func(interface{}, interface{})) {
 	for k, v := range c {
 		cb(k, v)
 	}
@@ -51,8 +51,8 @@ func (c MapStringInterface) ForEach(cb func(string, interface{})) {
 // MapInterface method creates a new slice with the results of calling a provided func on every element in the calling array.
 // Returns a slice of string (original type).
 // For asynchronicity, see MapAsync.
-func (c MapStringInterface) Map(cb func(string, interface{}) interface{}) MapStringInterface {
-	var ret = make(map[string]interface{}, len(c))
+func (c MapInterfaceInterface) Map(cb func(interface{}, interface{}) interface{}) MapInterfaceInterface {
+	var ret = make(map[interface{}]interface{}, len(c))
 	for k, v := range c {
 		ret[k] = cb(k, v)
 	}
@@ -64,14 +64,14 @@ func (c MapStringInterface) Map(cb func(string, interface{}) interface{}) MapStr
 // To keep initial order, the first elemt of th []interface{} written to the chan must be the key. The second element muse be a string.
 // Returns a StringSlice (original type).
 // If you want to map to a slice of different type, see MapAsyncInterface.
-func (c MapStringInterface) MapAsync(cb func(string, interface{}, chan [2]interface{}), maxConcurrency ...int) MapStringInterface {
+func (c MapInterfaceInterface) MapAsync(cb func(interface{}, interface{}, chan [2]interface{}), maxConcurrency ...int) MapInterfaceInterface {
 	var maxConc = lists.DEFAULT_CONC
 	if len(maxConcurrency) == 1 {
 		maxConc = maxConcurrency[0]
 	}
 
 	mapChan := make(chan [2]interface{}, len(c))
-	ret := make(map[string]interface{}, len(c))
+	ret := make(map[interface{}]interface{}, len(c))
 
 	// if maxConc is higher than 0 length of chan doing is lower than maxConc && counter is lower than lenght of slice continue
 	// else start reading from the chan to decrease concurrency
@@ -84,7 +84,7 @@ func (c MapStringInterface) MapAsync(cb func(string, interface{}, chan [2]interf
 
 		for {
 
-			var k string
+			var k interface{}
 			var v interface{}
 			if len(indexes) > sent {
 				k = indexes[sent]
@@ -103,7 +103,7 @@ func (c MapStringInterface) MapAsync(cb func(string, interface{}, chan [2]interf
 				intf := <-mapChan
 				received++
 
-				ret[intf[0].(string)] = intf[1]
+				ret[intf[0]] = intf[1]
 
 				// reading doing to continue the loop
 				<-doing
@@ -124,7 +124,7 @@ func (c MapStringInterface) MapAsync(cb func(string, interface{}, chan [2]interf
 		ct := 0
 		for intf := range mapChan {
 
-			ret[intf[0].(string)] = intf[1]
+			ret[intf[0]] = intf[1]
 
 			ct++
 			if ct == len(c) {
@@ -139,7 +139,7 @@ func (c MapStringInterface) MapAsync(cb func(string, interface{}, chan [2]interf
 // If no accumulator is passed as second argument, default accumulator will be nil
 // Returns an interface.
 // For asynchronicity, see ReduceAsync.
-func (c MapStringInterface) Reduce(cb func(string, interface{}, interface{}) interface{}, defAgg ...interface{}) interface{} {
+func (c MapInterfaceInterface) Reduce(cb func(interface{}, interface{}, interface{}) interface{}, defAgg ...interface{}) interface{} {
 	var agg interface{}
 	if len(defAgg) == 0 {
 		agg = nil
@@ -155,7 +155,7 @@ func (c MapStringInterface) Reduce(cb func(string, interface{}, interface{}) int
 // Reduce method applies a go routinge against an accumulator and each element in the slice (from left to right) to reduce it to a single value of any type.
 // Returns an interface.
 // For synchronicity, see Reduce.
-func (c MapStringInterface) ReduceAsync(cb func(string, interface{}, *lists.AsyncAggregator), defAgg ...interface{}) interface{} {
+func (c MapInterfaceInterface) ReduceAsync(cb func(interface{}, interface{}, *lists.AsyncAggregator), defAgg ...interface{}) interface{} {
 	agg := &lists.AsyncAggregator{
 		Done: make(chan interface{}, len(c)),
 		Agg:  make(chan interface{}, len(c)),
@@ -173,8 +173,8 @@ func (c MapStringInterface) ReduceAsync(cb func(string, interface{}, *lists.Asyn
 }
 
 // Indexes returns a slice of ints with including the indexes of the StringSlice
-func (c MapStringInterface) Indexes() []string {
-	var indexes = []string{}
+func (c MapInterfaceInterface) Indexes() []interface{} {
+	var indexes = []interface{}{}
 	for k, _ := range c {
 		indexes = append(indexes, k)
 	}
@@ -182,8 +182,8 @@ func (c MapStringInterface) Indexes() []string {
 }
 
 // Filter method creates a new slice with all elements that pass the test implemented by the provided function.
-func (c MapStringInterface) Filter(cb func(k string, v interface{}) bool) MapStringInterface {
-	var ret = make(map[string]interface{}, 0)
+func (c MapInterfaceInterface) Filter(cb func(k interface{}, v interface{}) bool) MapInterfaceInterface {
+	var ret = make(map[interface{}]interface{}, 0)
 	for k, v := range c {
 		if cb(k, v) {
 			ret[k] = v
@@ -193,8 +193,8 @@ func (c MapStringInterface) Filter(cb func(k string, v interface{}) bool) MapStr
 }
 
 // Cast explicitly cast the StringSlice to a map[string]string type
-func (c MapStringInterface) Cast() map[string]interface{} {
-	var dest map[string]interface{}
+func (c MapInterfaceInterface) Cast() map[interface{}]interface{} {
+	var dest map[interface{}]interface{}
 	dest = c
 	return dest
 }

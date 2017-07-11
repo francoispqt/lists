@@ -54,54 +54,61 @@ func (c MapStringString) MapAsync(cb func(string, string, chan [2]string), maxCo
 		maxConc = maxConcurrency[0]
 	}
 
-	var mapChan = make(chan [2]string, len(c))
-	var doing chan struct{}
-	var ret = make(map[string]string, len(c))
-	var i = 0
-	var received = 0
+	mapChan := make(chan [2]string, len(c))
+	ret := make(map[string]string, len(c))
 
+	// if maxConc is higher than 0 length of chan doing is lower than maxConc && counter is lower than lenght of slice continue
+	// else start reading from the chan to decrease concurrency
 	if maxConc > 0 {
-		doing = make(chan struct{}, maxConc)
-	} else {
-		doing = make(chan struct{})
-	}
 
-	for k, v := range c {
+		sent := 0
+		received := 0
+		doing := make(chan struct{}, maxConc)
+		indexes := c.Indexes()
 
-		// if maxConc == 0 go ahead or if maxConc is higher than 0 length of chan doing is lower than maxConc && counter is lower than lenght of slice continue
-		// else start reading from the chan to decrease concurrency
-		if maxConc == 0 || (len(doing) < maxConc && i < len(c)) {
-			go cb(k, v, mapChan)
-			i++
-			if maxConc > 0 {
-				doing <- struct{}{}
-			} else if maxConc == 0 && i == len(c) {
-				break
+		for {
+
+			var k string
+			var v string
+			if len(indexes) > sent {
+				k = indexes[sent]
+				v = c[k]
 			}
-		} else {
 
-			// start reading my chan
-			intf := <-mapChan
-			received++
-
-			if len(intf) > 1 {
-				ret[intf[0]] = intf[1]
+			if len(doing) < maxConc && sent < len(c) {
+				go cb(k, v, mapChan)
+				sent++
+				if maxConc > 0 {
+					doing <- struct{}{}
+				}
 			} else {
-				ret[intf[0]] = ""
-			}
 
-			// reading doing to continue the loop
-			<-doing
+				// start reading my chan
+				intf := <-mapChan
+				received++
 
-			if received == len(c)-1 {
-				return ret
+				if len(intf) > 1 {
+					ret[intf[0]] = intf[1]
+				} else {
+					ret[intf[0]] = ""
+				}
+
+				// reading doing to continue the loop
+				<-doing
+
+				if received == sent {
+					close(mapChan)
+					return ret
+				}
 			}
 		}
-	}
+	} else {
+		// max concurenccy is 0, means no limit
+		// so we only start reading the result chan here
+		for k, v := range c {
+			go cb(k, v, mapChan)
+		}
 
-	// is max concurenccy is 0, means no limit
-	// so we only start reading the result chan here
-	if maxConc == 0 {
 		ct := 0
 		for intf := range mapChan {
 			if len(intf) > 1 {
@@ -110,12 +117,11 @@ func (c MapStringString) MapAsync(cb func(string, string, chan [2]string), maxCo
 				ret[intf[0]] = ""
 			}
 			ct++
-			if ct >= len(c) {
-				break
+			if ct == len(c) {
+				close(mapChan)
 			}
 		}
 	}
-
 	return ret
 }
 
@@ -131,69 +137,72 @@ func (c MapStringString) MapAsyncInterface(cb func(string, string, chan [2]inter
 		maxConc = maxConcurrency[0]
 	}
 
-	var mapChan = make(chan [2]interface{}, len(c))
-	var doing chan struct{}
-	var ret = make(map[string]interface{}, len(c))
-	var i = 0
-	var received = 0
+	mapChan := make(chan [2]interface{}, len(c))
+	ret := make(map[string]interface{}, len(c))
 
+	// if maxConc is higher than 0 length of chan doing is lower than maxConc && counter is lower than lenght of slice continue
+	// else start reading from the chan to decrease concurrency
 	if maxConc > 0 {
-		doing = make(chan struct{}, maxConc)
-	} else {
-		doing = make(chan struct{})
-	}
 
-	for k, v := range c {
+		sent := 0
+		received := 0
+		doing := make(chan struct{}, maxConc)
+		indexes := c.Indexes()
 
-		// if maxConc == 0 go ahead or if maxConc is higher than 0 length of chan doing is lower than maxConc && counter is lower than lenght of slice continue
-		// else start reading from the chan to decrease concurrency
-		if maxConc == 0 || (len(doing) < maxConc && i < len(c)) {
-			go cb(k, v, mapChan)
-			i++
-			if maxConc > 0 {
-				doing <- struct{}{}
+		for {
+
+			var k string
+			var v string
+			if len(indexes) > sent {
+				k = indexes[sent]
+				v = c[k]
 			}
-			if maxConc == 0 && i == len(c) {
-				break
-			}
-		} else {
 
-			// start reading my chan
-			intf := <-mapChan
-			received++
-
-			if len(intf) > 1 {
-				ret[intf[0].(string)] = intf[1]
+			if len(doing) < maxConc && sent < len(c) {
+				go cb(k, v, mapChan)
+				sent++
+				if maxConc > 0 {
+					doing <- struct{}{}
+				}
 			} else {
-				ret[intf[0].(string)] = nil
-			}
 
-			// reading doing to continue the loop
-			<-doing
+				// start reading my chan
+				intf := <-mapChan
+				received++
 
-			if received == len(c)-1 {
-				return ret
+				if len(intf) > 1 {
+					ret[intf[0].(string)] = intf[1]
+				} else {
+					ret[intf[0].(string)] = ""
+				}
+
+				// reading doing to continue the loop
+				<-doing
+
+				if received == sent {
+					close(mapChan)
+					return ret
+				}
 			}
 		}
-	}
+	} else {
+		// max concurenccy is 0, means no limit
+		// so we only start reading the result chan here
+		for k, v := range c {
+			go cb(k, v, mapChan)
+		}
 
-	// is max concurenccy is 0, means no limit
-	// so we only start reading the result chan here
-	if maxConc == 0 {
 		ct := 0
 		for intf := range mapChan {
-			if len(intf) > 1 {
-				ret[intf[0].(string)] = intf[1]
-			} else {
-				ret[intf[0].(string)] = nil
-			}
+
+			ret[intf[0].(string)] = intf[1]
+
 			ct++
-			if ct >= len(c) {
-				break
+			if ct == len(c) {
+				close(mapChan)
 			}
 		}
 	}
-
 	return ret
 }
 
@@ -234,19 +243,6 @@ func (c MapStringString) ReduceAsync(cb func(string, string, *lists.AsyncAggrega
 		agg.Agg <- <-agg.Done
 	}
 	return <-agg.Agg
-}
-
-// IsLast checks if the index passed is the last of the slice
-func (c MapStringString) IsLast(k string) bool {
-	cL := len(c)
-	ct := 0
-	for kk, _ := range c {
-		ct++
-		if ct == cL && k == kk {
-			return true
-		}
-	}
-	return false
 }
 
 // Indexes returns a slice of ints with including the indexes of the StringSlice
