@@ -219,9 +219,10 @@ Functions explained below will use MapStringString, specificities for certain ty
 
 ### Contains
 Contains method determines whether a slice includes a certain element, returning true or false as appropriate.
+
 ```go
-var someSlice MapStringString
-someSlice = map[string]string{
+var someMap maps.MapStringString
+someMap = map[string]string{
 	"hello": "world",
 	"foo":   "bar",
 }
@@ -233,8 +234,8 @@ test.Contains("coffee") // false
 ### ForEach
 ForEach method executes a provided func once for each slice element.
 ```go
-var someSlice MapStringString
-someSlice = map[string]string{
+var someMap MapStringString
+someMap = map[string]string{
 	"hello": "world",
 	"foo":   "bar",
 }
@@ -242,15 +243,15 @@ someSlice.ForEach(func(k, v string) {
 	fmt.Println(k, v)
 })
 ```
-
+### Map
 Map method creates a new map with the results of calling a provided func on every element in the calling map.
 Returns a map of original type.
 For asynchronicity, see MapAsync.
 For returning a map with interfaces elements, see MapInterface.
-### Map
+
 ```go
-var someSlice MapStringString
-someSlice = map[string]string{
+var someMap MapStringString
+someMap = map[string]string{
 	"hello": "world",
 	"foo":   "bar",
 }
@@ -262,20 +263,20 @@ result = someSlice.Map(func(k, v string) string {
 
 fmt.Println(result) // map[hello: world !, foo: bar !]
 ```
-
+### MapInterface
 MapInterface method creates a new map with the results of calling a provided func on every element in the calling array.
 Returns a map of interfaces indexed by strings for all MapString.
 This method does not exist for MapStringInterface and MapInterfaceInterface.
 For asynchronicity, see MapAsyncInterface.
-### MapInterface
+
 ```go
-var someSlice MapStringString
-someSlice = map[string]string{
+var someMap MapStringString
+someMap = map[string]string{
 	"hello": "world",
 	"foo":   "bar",
 }
 
-result := test2.MapInterface(func(k, v string) interface{} {
+result := someSlice.MapInterface(func(k, v string) interface{} {
 	return 1 // we return a different type just to show usage
 })
 
@@ -330,11 +331,11 @@ result := someSlice.MapAsync(func(k string, v string, done chan [2]string) {
 
 ### MapAsyncInterface
 Map async interface is the same as the MapAsync, except that you can map any value to the original index.
-Meaning a map[string]string will return map[string]interface{}.
+Meaning a map[string]string will return MapStringInterface which is map[string]interface{}.
 
 ```go
 // here for example we return a map string containing the bytes of the response body or an error
-result := someSlice.MapAsync(func(k string, v string, done chan [2]interface{}) {
+result := someMap.MapAsync(func(k string, v string, done chan [2]interface{}) {
 		// make get request
 		rs, err := http.Get(v)
 		log.Printf("calling :", v)
@@ -381,7 +382,7 @@ result := someMap.Reduce(
 fmt.Println(result) // 8
 ```
 ### ReduceAsync
-Reduce method applies a go routinge against an accumulator and each element in the slice (from left to right) to reduce it to a single value of any type.
+ReduceAsync method applies a go routine against an accumulator and each element in the map to reduce it to a single value of any type.
 The accumulator is a *lists.AsyncAggregator, it is a pointer to a stuct containing two chan :
 ```go
 type AsyncAggregator struct {
@@ -389,8 +390,43 @@ type AsyncAggregator struct {
 	Done chan interface{}
 }
 ```
-Returns an interface.
+It returns an interface.
 For synchronicity, see Reduce.
+
+You must get the current state of the aggregator by reading from AsyncAggregator.Agg chan
+```go
+result := <- AsyncAggregator.Agg
+```
+Then write the next state of the aggregator to the Done channel
+```go
+AsyncAggregator.Done <- result
+```
+If you don't want to change the sate of the aggregator between iterations, just write to the Done, the reading from the Agg
+```go
+AsyncAggregator.Done <- <-AsyncAggregator.Agg
+```
+
+```go
+var someMap maps.MapStringString
+someMap = map[string]string{
+	"hello": "world",
+	"foo":   "bar",
+}
+
+result := someMap.ReduceAsync(func(k, v string, agg *lists.AsyncAggregator) {
+	result := <-agg.Agg
+	if k == "foo" {
+		time.Sleep(time.Second * 1)
+		agg.Done <- "bar"
+		return
+	}
+	agg.Done <- result
+}).(string)
+
+fmt.Println(result) // bar
+```
+
+
 
 ### Indexes
 The Indexes method returns a slice of a given map's indexes (keys).
@@ -449,43 +485,240 @@ Slices have 5 different types:
 Functions explained below will use StringSlice, specificities for certain types will be mentioned.
 
 ### Contains
+Contains method determines whether a slice includes a certain element, returning true or false as appropriate.
+
 ```go
+var someSlice slices.StringSlice
+someSlice = []string{"world","bar"}
+
+test.Contains("world") // true
+test.Contains("coffee") // false
 ```
 
 ### ForEach
+ForEach method executes a provided func once for each slice element.
+
 ```go
+var someSlice slices.StringSlice
+someSlice = []string{"world","bar"}
+
+someSlice.ForEach(func(k, v string) {
+	fmt.Println(k, v)
+})
 ```
 
 ### Map
+Map method creates a new slice with the results of calling a provided func on every element in the calling map.
+Returns a map of original type.
+For asynchronicity, see MapAsync.
+For returning a map with interfaces elements, see MapInterface.
+
 ```go
+var someSlice slices.StringSlice
+someSlice = []string{"world","bar"}
+
+result = someSlice.Map(func(k, v string) string {
+	v += " !"
+	return v
+})
+
+fmt.Println(result) // [world !, bar !]
 ```
 
-### MapAsyncInterface
+### MapInterface
+MapInterface method creates a new map with the results of calling a provided func on every element in the calling array.
+Returns a map of interfaces indexed by strings for all MapString.
+This method does not exist for MapStringInterface and MapInterfaceInterface.
+For asynchronicity, see MapAsyncInterface.
+
 ```go
+var someSlice slices.StringSlice
+someSlice = []string{"world","bar"}
+
+result := someSlice.MapInterface(func(k, v string) interface{} {
+	return 1 // we return a different type just to show usage
+})
+
+fmt.Println(result) // [1, 1]
+```
+
+### MapAsync
+MapAsync method creates a new map with the results of calling a provided go routine on every element in the calling array.
+Runs asynchronously and gives a chan [2]string to return results for all MapStringString and [2]interface{} for all other types.
+To keep initial order, the first elemt of the [2]interface{} (or [2]string) written to the chan must be the key. The second element muse be a the destionation type.
+Returns the original type (example: MapStringString.Map() returns MapStringString).
+If you want to map to a map of different types, see MapAsyncInterface.
+
+**Concurrency**
+A second optional argument can be passed to MapAsync, it must be an int. This argument sets a max concurrency to the Mapping, meaning when the number of go routine call will equal to the max concurrency, it will wait for values to be consumed from the "done" chan before calling the next go routines.
+
+```go
+var someSlice slices.StringSlice
+someSlice = []string{"http://someuri.com","http://someotheruri.com"}
+
+// let say some slice has 500 elements
+// we want to get the result of all requests
+// to do it as quick as possible, let's do it in parallel
+// but we must make sure the number of file handlers open are not too high or it will panic
+// so we use maxConcurrency and we set it to 100
+
+result := someSlice.MapAsync(func(k string, v string, done chan [2]interface{}) {
+		// make get request
+		rs, err := http.Get(v)
+		log.Printf("calling :", v)
+
+		if err != nil {
+			panic(err)
+		}
+		defer rs.Body.Close()
+
+		bodyBytes, err := ioutil.ReadAll(rs.Body)
+		if err != nil {
+			panic(err)
+		}
+
+		bodyString := string(bodyBytes)
+		log.Printf("got response :", bodyString)
+
+		// write response to channel
+		// index must be first element
+		done <- [2]interface{k, bodyString}
+}, 100)
+```
+
+
+### MapAsyncInterface
+Map async interface is the same as the MapAsync, except that you can map any value to the original index.
+Meaning a map[string]string will return InterfaceSlice which is a[]interface{}.
+
+```go
+// here for example we return a map string containing the bytes of the response body or an error
+result := someSlice.MapAsync(func(k string, v string, done chan [2]interface{}) {
+		// make get request
+		rs, err := http.Get(v)
+		log.Printf("calling :", v)
+
+		if err != nil {
+			panic(err)
+		}
+		defer rs.Body.Close()
+
+		bodyBytes, err := ioutil.ReadAll(rs.Body)
+		if err != nil {
+			done <- [2]interface{}{k, err}
+			return
+		}
+
+		done <- [2]interface{}{k, bodyBytes}
+}, 100)
 ```
 
 ### Reduce
+Reduce method applies a func against an accumulator and each element in the map to reduce it to a single value of any type.
+If no accumulator is passed as second argument, default accumulator will be nil
+Returns an interface.
+For asynchronicity, see ReduceAsync.
+
 ```go
+var someSlice slices.StringSlice
+someSlice = []string{"1","2"}
+
+result := someSlice.Reduce(
+	func(k string, v string, agg interface{}) interface{} {
+		result := agg.(int)
+		intV, _ := strconv.Atoi(v) // we should check the error :)
+		result += intV
+		return result
+	},
+	0,
+).(int) // casting the result directly (as we know what's in there)
+
+fmt.Println(result) // 3
 ```
 
 ### ReduceAsync
+ReduceAsync method applies a go routine against an accumulator and each element in the map to reduce it to a single value of any type.
+The accumulator is a *lists.AsyncAggregator, it is a pointer to a stuct containing two chan :
 ```go
+type AsyncAggregator struct {
+	Agg  chan interface{}
+	Done chan interface{}
+}
+```
+It returns an interface.
+For synchronicity, see Reduce.
+
+You must get the current state of the aggregator by reading from AsyncAggregator.Agg chan
+```go
+result := <- AsyncAggregator.Agg
+```
+Then write the next state of the aggregator to the Done channel
+```go
+AsyncAggregator.Done <- result
+```
+If you don't want to change the sate of the aggregator between iterations, just write to the Done, the reading from the Agg
+```go
+AsyncAggregator.Done <- <-AsyncAggregator.Agg
+```
+
+```go
+var someSlice slices.StringSlice
+someSlice = []string{"foo","bar"}
+
+result := someSlice.ReduceAsync(func(k int, v string, agg *lists.AsyncAggregator) {
+	result := <-agg.Agg
+	if v == "foo" {
+		result = map[string]string{}
+		result[v] = "bar"
+		time.Sleep(time.Second * 1)
+		agg.Done <- result
+		return
+	}
+	agg.Done <- result
+}).(map[string]string)
+
+fmt.Println(result) // map[foo: bar]
 ```
 
 ### Indexes
+The Indexes method returns a slice of a given map's indexes (keys).
+
 ```go
+var someSlice slices.StringSlice
+someSlice = []string{"foo","bar"}
+
+var indexes slices.IntSlice
+indexes = someSlice.Indexes()
+
+fmt.Println(indexes) // [0, 1]
 ```
 
 ### Filter
+Filter method creates a slice with all elements that pass the test implemented by the provided function.
+
 ```go
+var someSlice slices.StringSlice
+someSlice = []string{"foo","bar"}
+
+result := someSlice.Filter(func(k, v string) bool {
+	return v != "foo"
+})
+
+fmt.Println(result) // [bar]
 ```
 
 ### Cast
+Cast method explicitly casts the slice to its original type.
+For example StringSlice.Cast() returns []string.
+
 ```go
+var someSlice slices.StringSlice
+someSlice = []string{"foo","bar"}
+
+someSlice.Cast()
 ```
 
 ## Tests
-
 
 The package is thoroughly tested, although it could take a little cleaning and commenting.
 Coverage is at 94% for slices and 97% for maps.
