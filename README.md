@@ -737,3 +737,8 @@ go test -cover
 cd slices
 go test -cover
 ```
+
+## Todo
+
+Add Sort method on slices.
+Add Find method on slices and maps.
