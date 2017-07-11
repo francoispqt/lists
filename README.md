@@ -207,6 +207,7 @@ func main() {
 
 ## Maps
 Maps have 6 different types:
+
 *maps.MapInterfaceInterface
 *maps.MapStringString
 *maps.MapStringInterface
@@ -438,6 +439,7 @@ someMap.Cast()
 
 ## Slices
 Slices have 5 different types:
+
 *slices.InterfaceSlice
 *slices.StringSlice
 *slices.Intslice
