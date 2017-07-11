@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/francoispqt/lists.svg?branch=master)](https://travis-ci.org/francoispqt/lists)
+
 # Lists
 Utilities for slices, maps, arrays, strings, chans...
 
