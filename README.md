@@ -176,26 +176,26 @@ func main() {
 ```
 ## Usage and Documentation
 1. **[Maps](#maps-1)**
-⋅⋅1. Contains
-⋅⋅2. ForEach
-⋅⋅3. Map
-..4. MapAsyncInterface
-..5. Reduce
-..6. ReduceAsync
-..7. Indexes
-..8. Filter
-..9. Cast
+  1. Contains
+  2. ForEach
+  3. Map
+  4. MapAsyncInterface
+  5. Reduce
+  6. ReduceAsync
+  7. Indexes
+  8. Filter
+  9. Cast
 
 2. **[Slices](#slices-1)**
-⋅⋅1. Contains
-⋅⋅2. ForEach
-⋅⋅3. Map
-..4. MapAsyncInterface
-..5. Reduce
-..6. ReduceAsync
-..7. Indexes
-..8. Filter
-..9. Cast
+  1. Contains
+  2. ForEach
+  3. Map
+  4. MapAsyncInterface
+  5. Reduce
+  6. ReduceAsync
+  7. Indexes
+  8. Filter
+  9. Cast
 
 ## Maps
 ### Contains
