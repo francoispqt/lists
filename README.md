@@ -288,15 +288,15 @@ If you want to map to a map of different types, see MapAsyncInterface.
 A second optional argument can be passed to MapAsync, it must be an int. This argument sets a max concurrency to the Mapping, meaning when the number of go routine call will equal to the max concurrency, it will wait for values to be consumed from the "done" chan before calling the next go routines.
 
 ```go
-var someSlice maps.MapStringString
-someSlice = maps.MapStringString{
+var someMap maps.MapStringString
+someMap = maps.MapStringString{
 	"someURI": "http://someuri.com"
 	...
 }
 // let say some slice has 500 elements
 // we want to get the result of all requests
 // to do it as quick as possible, let's do it in parallel
-// but we must make the number of file handlers open are not too high or it will panic
+// but we must make sure the number of file handlers open are not too high or it will panic
 // so we use maxConcurrency and we set it to 100
 
 result := someSlice.MapAsync(func(k string, v string, done chan [2]string) {
@@ -324,15 +324,61 @@ result := someSlice.MapAsync(func(k string, v string, done chan [2]string) {
 ```
 
 ### MapAsyncInterface
+Map async interface is the same as the MapAsync, except that you can map any value to the original index.
+Meaning a map[string]string will return map[string]interface{}.
+
 ```go
+// here for example we return a map string containing the bytes of the response body or an error
+result := someSlice.MapAsync(func(k string, v string, done chan [2]interface{}) {
+		// make get request
+		rs, err := http.Get(v)
+		log.Printf("calling :", v)
+
+		if err != nil {
+			panic(err)
+		}
+		defer rs.Body.Close()
+
+		bodyBytes, err := ioutil.ReadAll(rs.Body)
+		if err != nil {
+			done <- [2]interface{}{k, err}
+			return
+		}
+
+		done <- [2]interface{}{k, bodyBytes}
+}, 100)
 ```
 
 ### Reduce
+Reduce method applies a func against an accumulator and each element in the map to reduce it to a single value of any type.
+If no accumulator is passed as second argument, default accumulator will be nil
+Returns an interface.
+For asynchronicity, see ReduceAsync.
+
 ```go
+var someMap maps.MapStringString
+someMap = maps.MapStringString{
+	"1": "2",
+	"2": "3",
+}
+
+result := someMap.Reduce(
+	func(k string, v string, agg interface{}) interface{} {
+		result := agg.(int)
+		intK, _ := strconv.Atoi(k) // we should check the error :)
+		intV, _ := strconv.Atoi(v)
+		result += intK + intV
+		return result
+	},
+	0,
+).(int) // casting the result directly (as we know what's in there)
+
+fmt.Println(result) // 8
 ```
 
 ### ReduceAsync
 ```go
+
 ```
 
 ### Indexes
