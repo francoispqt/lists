@@ -13,6 +13,7 @@ https://godoc.org/github.com/francoispqt/lists
 
 **Maps**
 https://godoc.org/github.com/francoispqt/lists/maps
+
 **Slices**
 https://godoc.org/github.com/francoispqt/lists/slices
 
