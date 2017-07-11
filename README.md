@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/francoispqt/lists.svg?branch=master)](https://travis-ci.org/francoispqt/lists)
+[![Go Report Card](https://goreportcard.com/badge/github.com/francoispqt/lists)](https://goreportcard.com/report/github.com/francoispqt/lists)
 
 # Lists
 Utilities for slices, maps, arrays, strings, chans...

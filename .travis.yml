@@ -6,4 +6,10 @@ go:
   - 1.8.x
   - master
 
+script:
+  - ./test.sh
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -t uuid-repo-token
+
 go_import_path: github.com/francoispqt/lists
