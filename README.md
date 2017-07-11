@@ -6,10 +6,20 @@
 Utilities for slices, maps, arrays, strings, chans...
 
 Lists is a go package with multiple utilities for all sorts of lists.
-Package is still under development, contributions are welcome !
+Contributions are welcome !
+
+## GoDoc
+https://godoc.org/github.com/francoispqt/lists
+
+**Maps**
+https://godoc.org/github.com/francoispqt/lists/maps
+**Slices**
+https://godoc.org/github.com/francoispqt/lists/slices
 
 ## Examples
 ### Maps
+GoDoc: https://godoc.org/github.com/francoispqt/lists/maps
+
 ```go
 import "github.com/francoispqt/lists/maps"
 ```
@@ -101,6 +111,8 @@ func main() {
 ```
 
 ### Slices
+GoDoc: https://godoc.org/github.com/francoispqt/lists/slices
+
 ```go
 import "github.com/francoispqt/lists/slices"
 ```
