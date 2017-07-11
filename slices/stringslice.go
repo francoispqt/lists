@@ -97,7 +97,7 @@ func (c StringSlice) MapAsync(cb func(int, string, chan [2]interface{}), maxConc
 			// reading doing to continue the loop
 			<-doing
 
-			if received == len(c)-1 {
+			if received == len(c) {
 				return ret
 			}
 			continue

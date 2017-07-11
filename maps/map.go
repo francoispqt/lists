@@ -2,10 +2,6 @@ package maps
 
 import "reflect"
 
-type TesStruct struct {
-	Foo string
-}
-
 func intfSlice(slice interface{}) []interface{} {
 	s := reflect.ValueOf(slice)
 	if s.Kind() != reflect.Slice && s.Kind() != reflect.Array {

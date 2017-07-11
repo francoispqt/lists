@@ -21,6 +21,18 @@ func TestInterfaceSlice(t *testing.T) {
 	assert.True(t, test.Contains(t1), "test should contain hello")
 	assert.False(t, test.Contains(StringSlice{"test3"}), "test should contain hello")
 
+	var testSlice InterfaceSlice
+	testSlice = []interface{}{
+		[]string{"world"},
+		[]string{"bar"},
+		[2]string{"bar", "hello"},
+		TesStruct{Foo: "bar"},
+	}
+	assert.True(t, testSlice.Contains([]string{"world"}), "should contain []string{\"world\"}")
+	assert.True(t, testSlice.Contains([2]string{"bar", "hello"}), "should contain [2]string{\"bar\",\"hello\"}")
+	assert.True(t, testSlice.Contains(TesStruct{Foo: "bar"}), "should contain TesStruct{Foo: \"bar\"}")
+	assert.False(t, testSlice.Contains([]string{"hello"}), "should not contain []string{\"hello\"}")
+
 	forEachT := 0
 	test.ForEach(func(k int, v interface{}) {
 		forEachT++
@@ -64,6 +76,13 @@ func TestInterfaceSlice(t *testing.T) {
 
 	assert.Len(t, ret, 2, "test your be of len 2")
 	assert.Equal(t, StringSlice{"test1"}, ret[0], "index 0 should be 'StringSlice{\"test1\"}', mapping is async but needs to map back to original index")
+
+	filtered := InterfaceSlice(ret).Filter(func(k int, v interface{}) bool {
+		return k < 1
+	})
+
+	assert.Len(t, filtered, 1, "len after filter should be 1")
+	assert.True(t, filtered.IsLast(len(filtered)-1), "is last should be true")
 
 	reduceAsync := ret.ReduceAsync(func(k int, v interface{}, agg *lists.AsyncAggregator) {
 		if v.(StringSlice)[0] == "test3" {

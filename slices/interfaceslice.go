@@ -9,57 +9,36 @@ import (
 // InterfaceSlice is a custom type for a slice of interface{}
 type InterfaceSlice []interface{}
 
-func intfSlice(slice interface{}) []interface{} {
-	s := reflect.ValueOf(slice)
-	if s.Kind() != reflect.Slice {
-		panic("InterfaceSlice() given a non-slice type")
-	}
-
-	ret := make([]interface{}, s.Len())
-
-	for i := 0; i < s.Len(); i++ {
-		ret[i] = s.Index(i).Interface()
-	}
-
-	return ret
-}
-
-func compare(X, Y interface{}) bool {
-	xx := intfSlice(X)
-	yy := intfSlice(Y)
-	for k, v := range xx {
-		if len(yy)-1 >= k {
-			vv := yy[k]
-			if vv == v {
-				continue
-			}
-		}
-		return false
-	}
-	return true
-}
-
 // Contains method determines whether a slice includes a certain element, returning true or false as appropriate.
 func (c InterfaceSlice) Contains(s interface{}) bool {
-
+	contains := false
 	for _, v := range c {
 		val := reflect.ValueOf(v)
 		sVal := reflect.ValueOf(s)
 		switch val.Kind() {
 		case reflect.Slice:
 			if sVal.Kind() == reflect.Slice {
-				return compare(v, s)
+				contains = compare(v, s)
+				if contains {
+					return true
+				}
 			}
 			continue
 		case reflect.Array:
-			return compare(v.([]interface{}), s.([]interface{}))
+			if sVal.Kind() == reflect.Array {
+				contains = compare(v, s)
+				if contains {
+					return true
+				}
+			}
+			continue
 		default:
 			if v == s {
 				return true
 			}
 		}
 	}
-	return false
+	return contains
 }
 
 // ForEach method executes a provided func once for each slice element.
@@ -132,7 +111,7 @@ func (c InterfaceSlice) MapAsync(cb func(int, interface{}, chan [2]interface{}),
 			// reading doing to continue the loop
 			<-doing
 
-			if received == len(c)-1 {
+			if received == len(c) {
 				return ret
 			}
 		}

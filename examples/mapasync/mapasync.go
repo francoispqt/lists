@@ -15,7 +15,7 @@ func main() {
 
 	start := time.Now()
 
-	result := slices.StringSlice(make([]string, 500)).MapAsync(func(k int, v string, done chan []interface{}) {
+	result := slices.StringSlice(make([]string, 500)).MapAsync(func(k int, v string, done chan [2]interface{}) {
 
 		// do some async
 		go func() {
@@ -40,7 +40,7 @@ func main() {
 			log.Printf("got response :", bodyString)
 			// write response to channel
 			// index must be first element
-			done <- []interface{}{k, bodyString}
+			done <- [2]interface{}{k, bodyString}
 		}()
 
 	}, 100).Cast()

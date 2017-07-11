@@ -96,7 +96,7 @@ func (c Float32Slice) MapAsync(cb func(int, float32, chan [2]interface{}), maxCo
 			// reading doing to continue the loop
 			<-doing
 
-			if received == len(c)-1 {
+			if received == len(c) {
 				return ret
 			}
 		}
@@ -174,7 +174,7 @@ func (c Float32Slice) MapAsyncInterface(cb func(int, float32, chan [2]interface{
 			// reading doing to continue the loop
 			<-doing
 
-			if received == len(c)-1 {
+			if received == len(c) {
 				return ret
 			}
 		}

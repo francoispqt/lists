@@ -19,7 +19,7 @@ func random(min, max int) int {
 func TestHeavyLifting(t *testing.T) {
 	rand.Seed(time.Now().Unix())
 	test := []string{}
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 200; i++ {
 		test = append(test, fmt.Sprintf("test%d", i))
 	}
 	ctResult := 0
@@ -48,12 +48,32 @@ func TestHeavyLifting(t *testing.T) {
 		randNum := random(0, 200)
 		time.Sleep(time.Duration(randNum) * time.Millisecond)
 		done <- [2]interface{}{k, v}
-	}).Cast()
+	}, 100).Cast()
 
 	assert.Len(t, test, len(resultMapAsync), fmt.Sprintf("Result len should be %d", len(test)))
 	for i := 0; i < len(test); i++ {
 		assert.Equal(t, test[i], resultMapAsync[i], "Values in map async should be same as in original slice")
 	}
+
+	filtered := StringSlice(resultMapAsync).Filter(func(k int, v string) bool {
+		return k < 100
+	})
+
+	assert.Len(t, filtered, 100, "len after filter should be 100")
+	assert.True(t, filtered.IsLast(len(filtered)-1), "is last should be true")
+
+	resultIntf := filtered.MapAsyncInterface(func(k int, v string, done chan [2]interface{}) {
+		// do some async
+		go func() {
+			// write response to channel
+			// index must be first element
+			done <- [2]interface{}{k, v}
+		}()
+	}, 100)
+
+	assert.Len(t, resultIntf, 100, "len should be 100")
+	assert.IsType(t, "", resultIntf[0], "type of values in resultIntf should be int")
+
 	fmt.Println("Heavy lifting async map success")
 }
 

@@ -49,14 +49,14 @@ func (c IntSlice) MapInterface(cb func(int, int) interface{}) InterfaceSlice {
 // To keep initial order, the first elemt of th []interface{} written to the chan must be the key. The second element muse be a string.
 // Returns a StringSlice (original type).
 // If you want to map to a slice of different type, see MapAsyncInterface.
-func (c IntSlice) MapAsync(cb func(int, int, chan [2]interface{}), maxConcurrency ...int) IntSlice {
+func (c IntSlice) MapAsync(cb func(int, int, chan [2]int), maxConcurrency ...int) IntSlice {
 
 	var maxConc = lists.DEFAULT_CONC
 	if len(maxConcurrency) == 1 {
 		maxConc = maxConcurrency[0]
 	}
 
-	var mapChan = make(chan [2]interface{}, len(c))
+	var mapChan = make(chan [2]int, len(c))
 	var doing chan struct{}
 	var ret = make([]int, len(c))
 	var i = 0
@@ -89,15 +89,15 @@ func (c IntSlice) MapAsync(cb func(int, int, chan [2]interface{}), maxConcurrenc
 			received++
 
 			if len(intf) > 1 {
-				ret[intf[0].(int)] = intf[1].(int)
+				ret[intf[0]] = intf[1]
 			} else {
-				ret[intf[0].(int)] = 0
+				ret[intf[0]] = 0
 			}
 
 			// reading doing to continue the loop
 			<-doing
 
-			if received == len(c)-1 {
+			if received == len(c) {
 				return ret
 			}
 		}
@@ -109,9 +109,9 @@ func (c IntSlice) MapAsync(cb func(int, int, chan [2]interface{}), maxConcurrenc
 		ct := 0
 		for intf := range mapChan {
 			if len(intf) > 1 {
-				ret[intf[0].(int)] = intf[1].(int)
+				ret[intf[0]] = intf[1]
 			} else {
-				ret[intf[0].(int)] = 0
+				ret[intf[0]] = 0
 			}
 			ct++
 			if ct >= len(c) {
@@ -175,7 +175,7 @@ func (c IntSlice) MapAsyncInterface(cb func(int, int, chan [2]interface{}), maxC
 			// reading doing to continue the loop
 			<-doing
 
-			if received == len(c)-1 {
+			if received == len(c) {
 				return ret
 			}
 		}
