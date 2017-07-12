@@ -494,7 +494,7 @@ Slices have 5 different types:
 * slices.StringSlice
 * slices.Intslice
 * slices.Float32Slice
-* slices.Float34Slice
+* slices.Float64Slice
 
 Functions explained below will use StringSlice, specificities for certain types will be mentioned.
 
